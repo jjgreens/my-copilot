@@ -22,11 +22,10 @@ Scripts live in `scripts/` and require `gh` CLI and Python 3.
 |--------|---------|
 | `scripts/monitor_ci_pr.sh <owner/repo> <pr>` | Poll CI runs + Copilot review; exit when all done |
 | `scripts/show_pr_review_comments.py <owner/repo> <pr>` | List **all** active review threads with numbers (full GraphQL pagination) |
-| `scripts/pr_thread.py <owner/repo> <pr> resolve <N...>` | Resolve threads by number |
-| `scripts/pr_thread.py <owner/repo> <pr> reply <N> "msg"` | Reply to a thread by number |
-| `scripts/pr_thread.py <owner/repo> <pr> defer <N> ["context"]` | Defer a thread with context, then resolve |
-| `scripts/pr_thread.py <owner/repo> <pr> fixed <N> "msg"` | Mark a deferred thread as fixed |
-| `scripts/pr_thread.py <owner/repo> <pr> list-deferred` | List deferred threads not yet marked fixed |
+| `scripts/pr_thread.py <owner/repo> <pr> fix <N...> "msg"` | Reply with message + resolve (auto-prefixes [FIXED] if previously deferred) |
+| `scripts/pr_thread.py <owner/repo> <pr> reply <N> "msg"` | Reply asking for clarification, leaves thread open |
+| `scripts/pr_thread.py <owner/repo> <pr> defer <N> ["context"]` | Reply with [DEFERRED] context + resolve; shows in list-deferred |
+| `scripts/pr_thread.py <owner/repo> <pr> list-deferred` | List deferred threads not yet marked [FIXED] |
 
 ## Workflow
 
@@ -41,19 +40,19 @@ Use the `request_copilot_review` tool.
 For every active thread from the previous review round, take **exactly one** action.
 On the first pass there are no threads — skip to Step 3.
 
-**Fixed in code → resolve:**
+**Fixed in code → fix (reply + resolve):**
 ```bash
-scripts/pr_thread.py <owner/repo> <pr> resolve 26 27 36
+scripts/pr_thread.py <owner/repo> <pr> fix 26 27 36 "Fixed in <sha>: <description>."
 ```
 
-**Deferred or accepted as-is → reply explaining the decision, leave open:**
-```bash
-scripts/pr_thread.py <owner/repo> <pr> reply 68 "Intentional — re-enable before merge."
-```
-
-**Deferred for pre-merge review → defer (replies + resolves):**
+**Must revisit before merge → defer (reply [DEFERRED] + resolve):**
 ```bash
 scripts/pr_thread.py <owner/repo> <pr> defer 77 "Tag cleanup — review before merge."
+```
+
+**Need clarification from reviewer → reply (leaves thread open):**
+```bash
+scripts/pr_thread.py <owner/repo> <pr> reply 31 "Can you clarify expected behavior when X is nil?"
 ```
 
 **Never resolve a thread without either fixing the code or leaving an explanatory reply.**

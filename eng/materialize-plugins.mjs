@@ -142,27 +142,6 @@ function materializePlugins() {
       }
     }
 
-    // Rewrite plugin.json: collapse file paths to containing directory paths.
-    const rewritten = { ...metadata };
-    let changed = false;
-
-    for (const field of ["agents", "commands"]) {
-      if (Array.isArray(rewritten[field]) && rewritten[field].length > 0) {
-        const dirs = [...new Set(rewritten[field].map(p => path.dirname(p)))];
-        rewritten[field] = dirs;
-        changed = true;
-      }
-    }
-
-    if (Array.isArray(rewritten.skills) && rewritten.skills.length > 0) {
-      rewritten.skills = rewritten.skills.map(p => p.replace(/\/$/, ""));
-      changed = true;
-    }
-
-    if (changed) {
-      fs.writeFileSync(pluginJsonPath, JSON.stringify(rewritten, null, 2) + "\n", "utf8");
-    }
-
     const counts = [];
     if (metadata.agents?.length) counts.push(`${metadata.agents.length} agent(s)`);
     if (metadata.skills?.length) counts.push(`${metadata.skills.length} skill(s)`);

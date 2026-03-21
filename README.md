@@ -13,7 +13,7 @@ plugins/         ← generated artifacts (do not edit directly)
 eng/             ← build scripts
 ```
 
-Never edit materialized files inside `plugins/<name>/agents/`, `plugins/<name>/skills/` — those are overwritten by `npm run plugin:build`. The `plugins/<name>/.github/plugin/plugin.json` is maintained manually.
+Never edit materialized files inside `plugins/<name>/agents/` or `plugins/<name>/skills/` — those are overwritten by `npm run plugin:build`. The `plugins/<name>/.github/plugin/plugin.json` is maintained manually and is never modified by the build script.
 
 ## Installing a Plugin
 

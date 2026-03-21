@@ -5,27 +5,32 @@ Act on GitHub PR review threads by their display number.
 Thread numbers match the [N] output from show_pr_review_comments.py.
 
 Usage:
-  pr_thread.py <owner/repo> <pr> resolve <N> [<N> ...]
-  pr_thread.py <owner/repo> <pr> reply   <N> "message"
-  pr_thread.py <owner/repo> <pr> defer   <N> ["optional context"]
-  pr_thread.py <owner/repo> <pr> fixed   <N> "Fixed in <sha>: <description>"
+  pr_thread.py <owner/repo> <pr> fix    <N> [<N> ...] "Fixed in <sha>: <description>"
+  pr_thread.py <owner/repo> <pr> reply  <N> "question or clarification request"
+  pr_thread.py <owner/repo> <pr> defer  <N> ["context"]
   pr_thread.py <owner/repo> <pr> list-deferred
 
+Works on all review threads regardless of reviewer (Copilot or human).
+
 Actions:
-  resolve       Mark thread(s) resolved (code was fixed).
-  reply         Reply to a thread (leaves it open).
+  fix           Reply with the provided message then resolve. Use for any thread
+                where the code was addressed. Never resolve silently.
+                If the thread was previously deferred, auto-prefixes message with
+                [FIXED] so list-deferred no longer shows it.
+                Accepts multiple thread numbers; all get the same message.
+  reply         Reply to request more information or seek clarification from the
+                reviewer. Leaves the thread open. Use when you need input before
+                you can act (works for both Copilot and human reviews).
   defer         Reply with "[DEFERRED] <context>", then resolve.
-                Use this for items to revisit before merge.
-  fixed         Reply with "[FIXED] <message>" to a previously-deferred thread.
-                list-deferred will no longer show it. Thread stays resolved.
+                Use for anything that must be revisited before merge
+                (e.g. "re-enable X before merge", "follow-up issue needed").
   list-deferred List deferred threads that have not yet been marked [FIXED].
                 Run before merge to review and selectively create issues.
 
 Examples:
-  pr_thread.py intel-innersource/my-repo 1 resolve 26 27 36
-  pr_thread.py intel-innersource/my-repo 1 reply 68 "Intentional — re-enabled before merge."
+  pr_thread.py intel-innersource/my-repo 1 fix 26 27 28 "Fixed in abc1234: added error handling."
+  pr_thread.py intel-innersource/my-repo 1 reply 31 "Can you clarify expected behavior when X is nil?"
   pr_thread.py intel-innersource/my-repo 1 defer 77 "Tag cleanup — review before merge."
-  pr_thread.py intel-innersource/my-repo 1 fixed 77 "Fixed in abc1234: added GHCR retention policy."
   pr_thread.py intel-innersource/my-repo 1 list-deferred
 
 Requires GH_TOKEN, GITHUB_TOKEN, or a valid `gh auth` session.
@@ -43,12 +48,12 @@ repo   = sys.argv[1]
 pr_num = int(sys.argv[2])
 action = sys.argv[3]
 
-if action not in ("resolve", "reply", "defer", "fixed", "list-deferred"):
+if action not in ("fix", "reply", "defer", "list-deferred"):
     print(f"Unknown action: {action!r}.")
     usage()
 
-if action == "resolve" and len(sys.argv) < 5:
-    print("resolve requires at least one thread number.")
+if action == "fix" and len(sys.argv) < 6:
+    print("fix requires at least one thread number and a message.")
     usage()
 if action == "reply" and len(sys.argv) != 6:
     print("reply requires exactly one thread number and a message.")
@@ -58,9 +63,6 @@ if action == "defer" and len(sys.argv) < 5:
     usage()
 if action == "defer" and len(sys.argv) > 6:
     print("defer takes one thread number and an optional context string — did you mean to quote the context?")
-    usage()
-if action == "fixed" and len(sys.argv) != 6:
-    print("fixed requires exactly one thread number and a message.")
     usage()
 
 token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -85,7 +87,9 @@ def graphql(query, variables):
         print(f"HTTP {e.code}: {e.read().decode()}")
         sys.exit(1)
 
-# Fetch all threads with all comments (for list-deferred we need last comment)
+# Fetch all threads.
+# originalComment(first:1): the thread's first comment (path, line, issue text).
+# recentComments(last:100): recent replies for DEFERRED/FIXED detection.
 LIST_QUERY = """
 query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
@@ -96,8 +100,11 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
           id
           isResolved
           isOutdated
-          comments(last: 100) {
+          originalComment: comments(first: 1) {
             nodes { path line body author { login } url }
+          }
+          recentComments: comments(last: 100) {
+            nodes { body author { login } }
           }
         }
       }
@@ -143,9 +150,18 @@ mutation($threadId: ID!, $body: String!) {
 }
 """
 
+def _is_deferred(thread):
+    """Return True if thread has a [DEFERRED] comment with no subsequent [FIXED]."""
+    recent = thread["recentComments"]["nodes"]
+    deferred = [c for c in recent if (c.get("body") or "").startswith("[DEFERRED]")]
+    if not deferred:
+        return False
+    last_idx = recent.index(deferred[-1])
+    return not any((c.get("body") or "").startswith("[FIXED]") for c in recent[last_idx + 1:])
+
 def do_resolve(num, thread):
     node_id = thread["id"]
-    c = thread["comments"]["nodes"][0] if thread["comments"]["nodes"] else {}
+    c = thread["originalComment"]["nodes"][0] if thread["originalComment"]["nodes"] else {}
     path = c.get("path", "?")
     preview = (c.get("body") or "")[:60]
     if thread["isResolved"]:
@@ -159,7 +175,7 @@ def do_resolve(num, thread):
 
 def do_reply(num, thread, body):
     node_id = thread["id"]
-    c = thread["comments"]["nodes"][0] if thread["comments"]["nodes"] else {}
+    c = thread["originalComment"]["nodes"][0] if thread["originalComment"]["nodes"] else {}
     path = c.get("path", "?")
     preview = (c.get("body") or "")[:60]
     result = graphql(REPLY_MUTATION, {"threadId": node_id, "body": body})
@@ -168,12 +184,20 @@ def do_reply(num, thread, body):
     else:
         print(f"[{num}] ❌ Failed — {result.get('errors', [])}")
 
-if action == "resolve":
-    for num in [int(x) for x in sys.argv[4:]]:
+if action == "fix":
+    # Last arg is the message; all preceding args after action are thread numbers
+    message = sys.argv[-1]
+    nums = [int(x) for x in sys.argv[4:-1]]
+    if not nums:
+        print("fix requires at least one thread number before the message.")
+        usage()
+    for num in nums:
         thread = numbered.get(num)
         if not thread:
             print(f"[{num}] Thread not found (max: {max(numbered)})")
             continue
+        body = f"[FIXED] {message}" if _is_deferred(thread) else message
+        do_reply(num, thread, body)
         do_resolve(num, thread)
 
 elif action == "reply":
@@ -195,32 +219,15 @@ elif action == "defer":
     do_reply(num, thread, body)
     do_resolve(num, thread)
 
-elif action == "fixed":
-    num = int(sys.argv[4])
-    thread = numbered.get(num)
-    if not thread:
-        print(f"[{num}] Thread not found (max: {max(numbered)})")
-        sys.exit(1)
-    body = f"[FIXED] {sys.argv[5]}"
-    do_reply(num, thread, body)
-
 elif action == "list-deferred":
     found = []
     for i, t in enumerate(all_threads):
-        comments = t["comments"]["nodes"]
-        if not comments:
-            continue
-        # Find last reply that starts with [DEFERRED]; skip if a [FIXED] reply follows it
-        deferred_replies = [c for c in comments if (c.get("body") or "").startswith("[DEFERRED]")]
-        if deferred_replies:
-            last_deferred = deferred_replies[-1]
-            last_deferred_idx = comments.index(last_deferred)
-            subsequent = comments[last_deferred_idx + 1:]
-            already_fixed = any((c.get("body") or "").startswith("[FIXED]") for c in subsequent)
-            if already_fixed:
-                continue
-            first = comments[0]
-            found.append((i + 1, t, first, last_deferred))
+        if _is_deferred(t):
+            original = t["originalComment"]["nodes"]
+            first = original[0] if original else {}
+            recent = t["recentComments"]["nodes"]
+            deferred_replies = [c for c in recent if (c.get("body") or "").startswith("[DEFERRED]")]
+            found.append((i + 1, t, first, deferred_replies[-1]))
 
     if not found:
         print("No deferred threads found.")

@@ -45,7 +45,11 @@ if len(sys.argv) < 4:
     usage()
 
 repo   = sys.argv[1]
-pr_num = int(sys.argv[2])
+try:
+    pr_num = int(sys.argv[2])
+except ValueError:
+    print(f"Invalid PR number: {sys.argv[2]!r} — expected an integer.")
+    usage()
 action = sys.argv[3]
 
 if action not in ("fix", "reply", "defer", "list-deferred"):
@@ -67,8 +71,12 @@ if action == "defer" and len(sys.argv) > 6:
 
 token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
 if not token:
-    result = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
-    token = result.stdout.strip() if result.returncode == 0 else None
+    try:
+        result = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+        token = result.stdout.strip() if result.returncode == 0 else None
+    except FileNotFoundError:
+        print("Error: gh CLI not found and no GH_TOKEN/GITHUB_TOKEN set.")
+        sys.exit(1)
 
 headers = {
     "Accept": "application/vnd.github+json",

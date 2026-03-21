@@ -20,12 +20,19 @@ if len(sys.argv) != 3:
 repo   = sys.argv[1]   # e.g. intel-innersource/my-repo
 pr_num = sys.argv[2]   # e.g. 42
 
+if "/" not in repo:
+    print(f"Invalid repo format: {repo!r} — expected owner/repo")
+    usage()
+
 token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
 if not token:
-    # Try gh CLI token
     import subprocess
-    result = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
-    token = result.stdout.strip() if result.returncode == 0 else None
+    try:
+        result = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+        token = result.stdout.strip() if result.returncode == 0 else None
+    except FileNotFoundError:
+        print("Error: gh CLI not found and no GH_TOKEN/GITHUB_TOKEN set.")
+        sys.exit(1)
 
 headers = {"Accept": "application/vnd.github+json"}
 if token:
@@ -102,7 +109,7 @@ resolved          = sum(1 for t in threads if t["isResolved"])
 print(f"PR {repo}#{pr_num} — {len(threads)} threads total")
 print(f"  Active: {len(active)}  Outdated: {outdated}  Resolved: {resolved}")
 if outdated_unresolved:
-    print(f"  ⚠️  Outdated but unresolved: {len(outdated_unresolved)} — these show as open in the web UI. Run: pr_thread.py {repo} {pr_num} resolve <N...>")
+    print(f"  ⚠️  Outdated but unresolved: {len(outdated_unresolved)} — these show as open in the web UI. Run: pr_thread.py {repo} {pr_num} fix <N...> \"<message>\"")
 print()
 
 for num, t in active:

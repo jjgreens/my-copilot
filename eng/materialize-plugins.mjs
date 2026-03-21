@@ -21,12 +21,17 @@ import { ROOT_FOLDER, PLUGINS_DIR } from "./constants.mjs";
 
 const targetPlugin = process.argv[2];
 
+const SKIP_NAMES = new Set(["__pycache__", ".DS_Store"]);
+const SKIP_EXTS  = new Set([".pyc", ".pyo"]);
+
 /**
- * Recursively copy a directory.
+ * Recursively copy a directory, skipping build artifacts.
  */
 function copyDirRecursive(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (SKIP_NAMES.has(entry.name)) continue;
+    if (!entry.isDirectory() && SKIP_EXTS.has(path.extname(entry.name))) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {

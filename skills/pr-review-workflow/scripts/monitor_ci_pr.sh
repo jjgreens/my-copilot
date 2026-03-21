@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: monitor_ci_pr.sh <owner/repo> <pr_number>
-# Polls every 30s. Exits once all CI check runs reach a terminal state
-# AND a Copilot review has been submitted for the current PR HEAD commit.
+# Polls every 30s. Exits once all GitHub Actions workflow runs reach a terminal
+# state AND a Copilot review has been submitted for the current PR HEAD commit.
 
 REPO="${1:?Usage: monitor_ci_pr.sh <owner/repo> <pr_number>}"
 PR="${2:?Usage: monitor_ci_pr.sh <owner/repo> <pr_number>}"
@@ -13,6 +13,10 @@ while true; do
   echo "=== $(date -u +%H:%M:%SZ) ==="
 
   HEAD_SHA=$(gh api "repos/${REPO}/pulls/${PR}" --jq '.head.sha' 2>/dev/null)
+  if [ -z "$HEAD_SHA" ]; then
+    echo "Error: could not retrieve HEAD SHA — check repo/PR and gh auth status."
+    exit 1
+  fi
 
   RUNS=$(gh api "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}" \
     --jq '.workflow_runs | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null)

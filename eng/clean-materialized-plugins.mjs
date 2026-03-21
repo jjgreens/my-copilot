@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import { PLUGINS_DIR } from "./constants.mjs";
 
-const MATERIALIZED_DIRS = ["agents", "skills", "instructions"];
+const MATERIALIZED_DIRS = ["agents", "skills"];
 
 function countFiles(dir) {
   let count = 0;

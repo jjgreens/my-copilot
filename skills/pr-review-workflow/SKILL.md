@@ -1,6 +1,6 @@
 ---
 name: pr-review-workflow
-description: 'Drive a GitHub PR through the Copilot review cycle to merge-ready: identify all issues, fix in one batch, commit, request review, resolve threads, and monitor CI. Use when working a PR toward merge readiness.'
+description: 'Drive a GitHub PR through the Copilot review cycle to merge-ready: request review, resolve threads, monitor CI, identify and fix issues, repeat until clean.'
 ---
 
 # pr-review-workflow
@@ -30,33 +30,16 @@ Scripts live in `scripts/` and require `gh` CLI and Python 3.
 
 ## Workflow
 
-Follow this order **exactly** for each review round:
+Repeat this loop until the Copilot review comes back clean with no issues:
 
-### Step 1: Identify ALL Issues
+### Step 1: Request Copilot Review
 
-Run **both** before touching any code:
+Use the `request_copilot_review` tool.
 
-```bash
-scripts/show_pr_review_comments.py <owner/repo> <pr>
-```
+### Step 2: Resolve Open Threads
 
-Check CI failures in parallel. Do **not** start fixing until you have the full picture.
-
-### Step 2: Fix ALL Issues in One Batch
-
-Address every actionable thread AND every CI failure together. Do not commit partial fixes.
-
-### Step 3: Single Commit and Push
-
-One commit per review round.
-
-### Step 4: Request a New Copilot Review
-
-Use `request_copilot_review` tool.
-
-### Step 5: Resolve All Open Threads
-
-For every active thread from the completed review round, take **exactly one** action:
+For every active thread from the previous review round, take **exactly one** action.
+On the first pass there are no threads — skip to Step 3.
 
 **Fixed in code → resolve:**
 ```bash
@@ -75,13 +58,29 @@ scripts/pr_thread.py <owner/repo> <pr> defer 77 "Tag cleanup — review before m
 
 **Never resolve a thread without either fixing the code or leaving an explanatory reply.**
 
-### Step 6: Monitor CI + New Review
+### Step 3: Monitor CI + Review
 
 ```bash
 scripts/monitor_ci_pr.sh <owner/repo> <pr>
 ```
 
 Exits when all CI checks reach a terminal state AND the Copilot review for the current HEAD commit is submitted.
+
+### Step 4: Identify Remaining Issues
+
+```bash
+scripts/show_pr_review_comments.py <owner/repo> <pr>
+```
+
+Also check CI failures. If there are **no issues** → **done, PR is merge-ready.** Break the loop.
+
+### Step 5: Fix ALL Issues in One Batch
+
+Address every actionable thread AND every CI failure together. Do not commit partial fixes.
+
+### Step 6: Single Commit and Push
+
+One commit per review round. Then repeat from Step 1.
 
 ## Pre-Merge Checklist
 

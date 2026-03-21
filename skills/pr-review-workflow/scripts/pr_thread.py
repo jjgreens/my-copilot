@@ -54,7 +54,10 @@ if action == "reply" and len(sys.argv) != 6:
     print("reply requires exactly one thread number and a message.")
     usage()
 if action == "defer" and len(sys.argv) < 5:
-    print("defer requires at least one thread number.")
+    print("defer requires exactly one thread number.")
+    usage()
+if action == "defer" and len(sys.argv) > 6:
+    print("defer takes one thread number and an optional context string — did you mean to quote the context?")
     usage()
 if action == "fixed" and len(sys.argv) != 6:
     print("fixed requires exactly one thread number and a message.")
@@ -93,7 +96,7 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
           id
           isResolved
           isOutdated
-          comments(last: 10) {
+          comments(last: 100) {
             nodes { path line body author { login } url }
           }
         }
@@ -109,7 +112,14 @@ after = None
 
 while True:
     data = graphql(LIST_QUERY, {"owner": owner, "repo": name, "pr": pr_num, "after": after})
-    nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]
+    if data.get("errors"):
+        print(f"GraphQL errors: {data['errors']}")
+        sys.exit(1)
+    pr = (data.get("data") or {}).get("repository", {}).get("pullRequest")
+    if pr is None:
+        print(f"PR not found: {repo}#{pr_num}")
+        sys.exit(1)
+    nodes = pr["reviewThreads"]
     all_threads.extend(nodes["nodes"])
     if not nodes["pageInfo"]["hasNextPage"]:
         break

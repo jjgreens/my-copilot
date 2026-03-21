@@ -44,9 +44,12 @@ function copyDirRecursive(src, dest) {
  *   ./skills/bar/               → ROOT/skills/bar/
  */
 function resolveSource(relPath) {
-  const basename = path.basename(relPath, ".md");
   if (relPath.startsWith("./agents/")) {
-    return path.join(ROOT_FOLDER, "agents", `${basename}.agent.md`);
+    // Preserve subpath: ./agents/foo.md → ROOT/agents/foo.agent.md
+    //                   ./agents/team/foo.md → ROOT/agents/team/foo.agent.md
+    const withoutPrefix = relPath.slice("./agents/".length);
+    const withoutExt = withoutPrefix.replace(/\.md$/, "");
+    return path.join(ROOT_FOLDER, "agents", withoutExt + ".agent.md");
   }
   if (relPath.startsWith("./skills/")) {
     const skillName = relPath.replace(/^\.\/skills\//, "").replace(/\/$/, "");

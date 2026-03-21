@@ -14,8 +14,8 @@ while true; do
 
   HEAD_SHA=$(gh api "repos/${REPO}/pulls/${PR}" --jq '.head.sha' 2>/dev/null)
 
-  RUNS=$(gh api "repos/${REPO}/actions/runs" \
-    --jq '.workflow_runs[:5] | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null)
+  RUNS=$(gh api "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}" \
+    --jq '.workflow_runs | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null)
   echo "$RUNS"
 
   # Filter: copilot bot (login starts with "copilot-pull-request-reviewer"),

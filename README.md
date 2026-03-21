@@ -13,8 +13,7 @@ plugins/         ← generated artifacts (do not edit directly)
 eng/             ← build scripts
 ```
 
-`plugins/` is populated by build scripts from the top-level source directories.
-Never edit files inside `plugins/` directly.
+Never edit materialized files inside `plugins/<name>/agents/`, `plugins/<name>/skills/` — those are overwritten by `npm run plugin:build`. The `plugins/<name>/.github/plugin/plugin.json` is maintained manually.
 
 ## Installing a Plugin
 

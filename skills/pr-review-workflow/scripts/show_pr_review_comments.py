@@ -80,7 +80,14 @@ while True:
         print(f"HTTP {e.code}: {e.read().decode()}")
         sys.exit(1)
 
-    nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]
+    if data.get("errors"):
+        print(f"GraphQL errors: {data['errors']}")
+        sys.exit(1)
+    pr = (data.get("data") or {}).get("repository", {}).get("pullRequest")
+    if pr is None:
+        print(f"PR not found: {repo}#{pr_num}")
+        sys.exit(1)
+    nodes = pr["reviewThreads"]
     threads.extend(nodes["nodes"])
     pi = nodes["pageInfo"]
     if not pi["hasNextPage"]:
@@ -99,7 +106,12 @@ if outdated_unresolved:
 print()
 
 for num, t in active:
-    c = t["comments"]["nodes"][0]
+    comment_nodes = t["comments"]["nodes"]
+    if not comment_nodes:
+        print(f"[{num}] (empty thread — no comments)")
+        print()
+        continue
+    c = comment_nodes[0]
     sha  = (c.get("originalCommit") or {}).get("abbreviatedOid", "?")
     path = c.get("path", "")
     line = c.get("line") or ""

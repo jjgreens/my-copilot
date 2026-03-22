@@ -34,11 +34,12 @@ fi
 HEAD_SHA=$(gh pr view "$PR" --repo "$REPO" --json headRefOid -q .headRefOid)
 
 # Check if any Copilot review check run is currently queued, in progress, or already
-# completed for this HEAD — all three mean a (re-)request is unnecessary.
+# completed successfully for this HEAD — all three mean a (re-)request is unnecessary.
+# Allow retry if completed with a failure conclusion (cancelled, timed_out, failure).
 # Use --paginate to handle repos with many check runs exceeding the default page size
 COPILOT_ACTIVE=$(gh api "repos/${REPO}/commits/${HEAD_SHA}/check-runs?per_page=100" \
   --paginate \
-  --jq '[.check_runs[] | select(.name | test("Copilot"; "i")) | select(.status == "queued" or .status == "in_progress" or .status == "completed")] | length' \
+  --jq '[.check_runs[] | select(.name | test("Copilot"; "i")) | select(.status == "queued" or .status == "in_progress" or (.status == "completed" and (.conclusion // "") | IN("success", "neutral", "skipped")))] | length' \
   | jq -s 'add // 0')
 
 if [[ "$COPILOT_ACTIVE" -gt 0 ]]; then

@@ -105,15 +105,6 @@ def main():
                     print(summary)
             else:
                 print("  (no output summary)")
-        elif summary and ann_count > 0:
-            # Success/neutral run with annotations — still worth showing the summary
-            total_summaries += 1
-            print(f"\n[{run_name}] ({conclusion}) — output summary on {short_sha}:")
-            if len(summary) > 2000:
-                print(summary[:2000])
-                print(f"  ... ({len(summary) - 2000} chars truncated — see check run for full output)")
-            else:
-                print(summary)
 
         # Fetch annotations only when the check run reports there are some
         if not ann_count:

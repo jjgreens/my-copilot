@@ -97,6 +97,7 @@ GitHub PRs have three distinct issue surfaces, each requiring a separate check:
 | Surface | What lives here | Script |
 |---------|----------------|--------|
 | Review threads | Inline Copilot code comments | `show_pr_review_comments.py` |
+| Review submission bodies | Top-level review body text (general feedback not attached to a thread) — check the GitHub UI directly | *(manual)* |
 | CI check-run output | Per-run tool reports (MegaLinter analysis, linter summaries) **and** file/line annotations — tied to HEAD, never stale | `show_ci_annotations.py` |
 | PR comments | Bot tool summaries (MegaLinter, GHAS, Dependabot) **and** human reviewer comments outside a formal review | `show_pr_comments.py` |
 

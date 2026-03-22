@@ -27,6 +27,11 @@ const SKIP_EXTS  = new Set([".pyc", ".pyo"]);
 /**
  * Recursively copy a directory, skipping build artifacts.
  */
+function copyFileWithMode(src, dest) {
+  fs.copyFileSync(src, dest);
+  fs.chmodSync(dest, fs.statSync(src).mode);
+}
+
 function copyDirRecursive(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -38,7 +43,7 @@ function copyDirRecursive(src, dest) {
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      copyFileWithMode(srcPath, destPath);
     }
   }
 }
@@ -143,7 +148,7 @@ function materializePlugins() {
         }
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         if (fs.existsSync(dest)) fs.rmSync(dest, { force: true });
-        fs.copyFileSync(src, dest);
+        copyFileWithMode(src, dest);
         totalAgents++;
       }
     }

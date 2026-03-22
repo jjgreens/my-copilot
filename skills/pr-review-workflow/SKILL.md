@@ -92,7 +92,7 @@ Exits when all CI checks reach a terminal state AND the Copilot review for the c
 > a complete issue list.** Fixing after seeing only one source is the most common
 > cause of extra commits in a round.
 
-GitHub PRs have three distinct issue surfaces, each requiring a separate check:
+GitHub PRs have four distinct issue surfaces, each requiring a separate check:
 
 | Surface | What lives here | Script |
 |---------|----------------|--------|

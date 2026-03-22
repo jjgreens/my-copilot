@@ -2,15 +2,13 @@
 """
 show_ci_annotations.py <owner/repo> <pr>
 
-For CI check runs on the HEAD commit of a PR that have actionable findings
-(conclusion other than success, neutral, or skipped; or warning/failure-level
-annotations), reports:
-  1. The check run output summary (tool-level report, e.g. MegaLinter analysis)
-  2. File/line annotations at warning or failure level
+For CI check runs on the HEAD commit of a PR, reports actionable findings:
+  - Non-success/neutral/skipped runs: always reports the output summary (even
+    if empty) since a failure conclusion is itself actionable
+  - All completed runs: reports warning/failure-level file/line annotations
 
-Check runs with success, neutral, or skipped conclusions and no annotations
-are silently skipped.
-These are two distinct GitHub surfaces — both must be checked each round.
+Check runs with success, neutral, or skipped conclusions and zero
+warning/failure annotations are silently skipped.
 The output summary is the canonical per-run report tied to the current HEAD;
 it is never stale, unlike PR issue comments which accumulate across runs.
 

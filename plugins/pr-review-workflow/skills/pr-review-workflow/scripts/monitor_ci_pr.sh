@@ -23,7 +23,7 @@ while true; do
     exit 1
   fi
 
-  if ! RUNS=$(gh api "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}" \
+  if ! RUNS=$(gh api --paginate "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}&per_page=100" \
     --jq '.workflow_runs | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null); then
     echo "Error: could not retrieve workflow runs — check repo permissions and gh auth status."
     exit 1

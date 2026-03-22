@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 """
 Show active (not outdated, not resolved) GitHub PR review threads.
 

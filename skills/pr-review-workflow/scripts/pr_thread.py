@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 """
 Act on GitHub PR review threads by their display number.
 

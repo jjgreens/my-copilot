@@ -77,9 +77,15 @@ Also check CI failures. If there are **no issues** → **done, PR is merge-ready
 
 Address every actionable thread AND every CI failure together. Do not commit partial fixes.
 
+If the repo has a required pre-commit build or generation step (e.g. `npm run build`,
+`npm run generate`), run it now so generated artifacts stay in sync with source changes.
+
 ### Step 6: Single Commit and Push
 
-One commit per review round. Then repeat from Step 1.
+One commit per review round (include any generated artifacts). Then repeat from Step 1.
+
+> ⚠️ **Order matters**: always push the fix commit *before* requesting the next review.
+> Requesting review before committing means Copilot reviews the unfixed code.
 
 ## Pre-Merge Checklist
 

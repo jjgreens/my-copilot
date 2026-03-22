@@ -1,5 +1,18 @@
 # Contributing
 
+## Branch and PR Policy
+
+**Never push directly to `main`.** All changes must go through a pull request:
+
+```bash
+git checkout -b <branch-name>
+# make changes
+git push -u origin <branch-name>
+gh pr create
+```
+
+Use the `pr-review-workflow` skill to drive PRs to merge-ready state.
+
 ## Making Changes
 
 Source files live under `agents/`, `skills/`, and `instructions/`.  

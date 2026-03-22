@@ -76,10 +76,16 @@ def main():
 
     total_annotations = 0
     total_summaries = 0
+    incomplete_runs = 0
     for run in check_runs:
         run_id = run["id"]
         run_name = run["name"]
-        conclusion = run.get("conclusion") or run.get("status", "unknown")
+        status = run.get("status", "unknown")
+        conclusion = run.get("conclusion") or status
+
+        if status != "completed":
+            incomplete_runs += 1
+            continue
 
         # Use output data already present in the list response (avoids an extra API call per run)
         output = run.get("output", {}) if isinstance(run, dict) else {}
@@ -117,11 +123,12 @@ def main():
             msg = ann.get("message", "").replace("\n", " ")
             print(f"  {level.upper():7} {path}:{line}  {msg}")
 
-    if total_summaries == 0 and total_annotations == 0:
+    if incomplete_runs > 0:
+        print(f"⚠️  {incomplete_runs} check run(s) still in progress — re-run after CI completes.")
+    if total_summaries == 0 and total_annotations == 0 and incomplete_runs == 0:
         print(f"✅ No actionable CI findings for {short_sha} (all check runs clean).")
-    else:
-        if total_annotations > 0:
-            print(f"\n⚠️  {total_annotations} annotation(s) found — address before merging.")
+    elif total_annotations > 0:
+        print(f"\n⚠️  {total_annotations} annotation(s) found — address before merging.")
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@
 
 import fs from "fs";
 import path from "path";
-import { PLUGINS_DIR } from "./constants.mjs";
+import { ROOT_FOLDER, PLUGINS_DIR } from "./constants.mjs";
 
 const MATERIALIZED_DIRS = ["agents", "skills"];
 
@@ -61,6 +61,14 @@ function main() {
     console.log("✅ No materialized files found. Plugins are already clean.");
   } else {
     console.log(`✅ Removed ${total} materialized file(s) from plugins.`);
+  }
+
+  // Clean materialized .github/instructions/
+  const instructionsDir = path.join(ROOT_FOLDER, ".github", "instructions");
+  if (fs.existsSync(instructionsDir)) {
+    const count = countFiles(instructionsDir);
+    fs.rmSync(instructionsDir, { recursive: true, force: true });
+    console.log(`✅ Removed .github/instructions/ (${count} files)`);
   }
 }
 

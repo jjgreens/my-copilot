@@ -17,7 +17,7 @@
 
 import fs from "fs";
 import path from "path";
-import { ROOT_FOLDER, PLUGINS_DIR } from "./constants.mjs";
+import { ROOT_FOLDER, PLUGINS_DIR, INSTRUCTIONS_DIR } from "./constants.mjs";
 
 const targetPlugin = process.argv[2];
 
@@ -192,4 +192,23 @@ function materializePlugins() {
   }
 }
 
+function materializeInstructions() {
+  const destDir = path.join(ROOT_FOLDER, ".github", "instructions");
+
+  if (!fs.existsSync(INSTRUCTIONS_DIR)) return;
+
+  const files = fs.readdirSync(INSTRUCTIONS_DIR).filter(f => f.endsWith(".instructions.md"));
+  if (files.length === 0) return;
+
+  // Clean stale copies before writing fresh ones.
+  if (fs.existsSync(destDir)) fs.rmSync(destDir, { recursive: true, force: true });
+  fs.mkdirSync(destDir, { recursive: true });
+
+  for (const file of files) {
+    copyFileWithMode(path.join(INSTRUCTIONS_DIR, file), path.join(destDir, file));
+  }
+  console.log(`✓ instructions: copied ${files.length} file(s) to .github/instructions/`);
+}
+
 materializePlugins();
+materializeInstructions();

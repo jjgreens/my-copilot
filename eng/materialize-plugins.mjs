@@ -126,19 +126,19 @@ function materializePlugins() {
       for (const relPath of metadata.agents) {
         const src = resolveSource(relPath);
         if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Unknown path format: ${relPath}`);
+          errors++;
           continue;
         }
         if (!fs.existsSync(src)) {
-          console.warn(`  ⚠ ${pluginName}: Source not found: ${src}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Source not found: ${src}`);
+          errors++;
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
         if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
-          console.warn(`  ⚠ ${pluginName}: Destination escapes plugin directory: ${dest}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          errors++;
           continue;
         }
         fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -153,19 +153,19 @@ function materializePlugins() {
       for (const relPath of metadata.skills) {
         const src = resolveSource(relPath);
         if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Unknown path format: ${relPath}`);
+          errors++;
           continue;
         }
         if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
-          console.warn(`  ⚠ ${pluginName}: Source directory not found: ${src}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Source directory not found: ${src}`);
+          errors++;
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
         if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
-          console.warn(`  ⚠ ${pluginName}: Destination escapes plugin directory: ${dest}`);
-          warnings++;
+          console.error(`  ✗ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          errors++;
           continue;
         }
         if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });

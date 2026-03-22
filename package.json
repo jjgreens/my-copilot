@@ -1,0 +1,14 @@
+{
+  "name": "my-copilot",
+  "version": "1.0.0",
+  "description": "Personal GitHub Copilot customizations — agents, skills, instructions, and workflows.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "plugin:build": "node ./eng/materialize-plugins.mjs",
+    "plugin:clean": "node ./eng/clean-materialized-plugins.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

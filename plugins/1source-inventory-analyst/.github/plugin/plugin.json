@@ -1,0 +1,20 @@
+{
+  "name": "1source-inventory-analyst",
+  "description": "Searches the Intel 1Source GitHub Enterprise inventory for repositories that exhibit noteworthy programming practices, principles, and BKMs. Performs two-phase analysis — triage to find interesting repos, then deep inspection with scored findings.",
+  "version": "1.0.0",
+  "author": {
+    "name": "jjgreens"
+  },
+  "repository": "https://github.com/jjgreens/my-copilot",
+  "license": "MIT",
+  "keywords": [
+    "github-copilot",
+    "intel",
+    "1source",
+    "inventory",
+    "analysis"
+  ],
+  "agents": [
+    "./agents/1source-inventory-analyst.md"
+  ]
+}

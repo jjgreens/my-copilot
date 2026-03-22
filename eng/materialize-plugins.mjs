@@ -1,0 +1,195 @@
+#!/usr/bin/env node
+/**
+ * eng/materialize-plugins.mjs
+ *
+ * Copies source files referenced by each plugins/<name>/.github/plugin/plugin.json
+ * into the plugin directory so it can be installed standalone:
+ *
+ *   /plugin install jjgreens/my-copilot@<name>
+ *
+ * agents/, skills/ are the source of truth.
+ * plugins/ is a generated artifact — do not edit files there directly.
+ *
+ * Usage:
+ *   node eng/materialize-plugins.mjs           # build all plugins
+ *   node eng/materialize-plugins.mjs <name>    # build one plugin
+ */
+
+import fs from "fs";
+import path from "path";
+import { ROOT_FOLDER, PLUGINS_DIR } from "./constants.mjs";
+
+const targetPlugin = process.argv[2];
+
+const SKIP_NAMES = new Set(["__pycache__", ".DS_Store"]);
+const SKIP_EXTS  = new Set([".pyc", ".pyo"]);
+
+/**
+ * Recursively copy a directory, skipping build artifacts.
+ */
+function copyFileWithMode(src, dest) {
+  fs.copyFileSync(src, dest);
+  fs.chmodSync(dest, fs.statSync(src).mode);
+}
+
+function copyDirRecursive(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (SKIP_NAMES.has(entry.name)) continue;
+    if (!entry.isDirectory() && SKIP_EXTS.has(path.extname(entry.name))) continue;
+    if (entry.isSymbolicLink()) continue;
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      copyFileWithMode(srcPath, destPath);
+    }
+  }
+}
+
+/**
+ * Resolve a plugin-relative path to the repo-root source file/directory.
+ *
+ *   ./agents/foo.md             → ROOT/agents/foo.agent.md
+ *   ./skills/bar/               → ROOT/skills/bar/
+ */
+function resolveSource(relPath) {
+  // Reject path traversal attempts (slash-separated and backslash-separated).
+  if (relPath.split(/[/\\]/).some(seg => seg === "..")) {
+    return null;
+  }
+  let result;
+  if (relPath.startsWith("./agents/")) {
+    // Preserve subpath: ./agents/foo.md → ROOT/agents/foo.agent.md
+    //                   ./agents/team/foo.md → ROOT/agents/team/foo.agent.md
+    const withoutPrefix = relPath.slice("./agents/".length);
+    const withoutExt = withoutPrefix.replace(/\.md$/, "");
+    result = path.join(ROOT_FOLDER, "agents", withoutExt + ".agent.md");
+  } else if (relPath.startsWith("./skills/")) {
+    const skillName = relPath.replace(/^\.\/skills\//, "").replace(/\/$/, "");
+    result = path.join(ROOT_FOLDER, "skills", skillName);
+  } else {
+    return null;
+  }
+  // Final guard: verify the resolved path stays within ROOT_FOLDER.
+  const rootAbs = path.resolve(ROOT_FOLDER) + path.sep;
+  if (!path.resolve(result).startsWith(rootAbs)) return null;
+  return result;
+}
+
+function materializePlugins() {
+  console.log("Materializing plugin files...\n");
+
+  if (!fs.existsSync(PLUGINS_DIR)) {
+    console.error(`Error: plugins directory not found at ${PLUGINS_DIR}`);
+    process.exit(1);
+  }
+
+  const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name)
+    .sort()
+    .filter(name => !targetPlugin || name === targetPlugin);
+
+  if (targetPlugin && pluginDirs.length === 0) {
+    console.error(`Error: plugin not found: ${targetPlugin}`);
+    process.exit(1);
+  }
+
+  let totalAgents = 0;
+  let totalSkills = 0;
+  let errors = 0;
+
+  for (const dirName of pluginDirs) {
+    const pluginPath = path.join(PLUGINS_DIR, dirName);
+    const pluginJsonPath = path.join(pluginPath, ".github/plugin", "plugin.json");
+
+    if (!fs.existsSync(pluginJsonPath)) {
+      continue;
+    }
+
+    let metadata;
+    try {
+      metadata = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+    } catch (err) {
+      console.error(`Error: Failed to parse ${pluginJsonPath}: ${err.message}`);
+      errors++;
+      continue;
+    }
+
+    const pluginName = metadata.name || dirName;
+
+    // Remove stale materialized files before copying fresh ones.
+    for (const subdir of ["agents", "skills"]) {
+      const target = path.join(pluginPath, subdir);
+      if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });
+    }
+
+    // Process agents
+    if (Array.isArray(metadata.agents)) {
+      for (const relPath of metadata.agents) {
+        const src = resolveSource(relPath);
+        if (!src) {
+          console.error(`  ✗ ${pluginName}: Unknown path format: ${relPath}`);
+          errors++;
+          continue;
+        }
+        if (!fs.existsSync(src)) {
+          console.error(`  ✗ ${pluginName}: Source not found: ${src}`);
+          errors++;
+          continue;
+        }
+        const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
+        if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
+          console.error(`  ✗ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          errors++;
+          continue;
+        }
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        if (fs.existsSync(dest)) fs.rmSync(dest, { force: true });
+        copyFileWithMode(src, dest);
+        totalAgents++;
+      }
+    }
+
+    // Process skills
+    if (Array.isArray(metadata.skills)) {
+      for (const relPath of metadata.skills) {
+        const src = resolveSource(relPath);
+        if (!src) {
+          console.error(`  ✗ ${pluginName}: Unknown path format: ${relPath}`);
+          errors++;
+          continue;
+        }
+        if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
+          console.error(`  ✗ ${pluginName}: Source directory not found: ${src}`);
+          errors++;
+          continue;
+        }
+        const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
+        if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
+          console.error(`  ✗ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          errors++;
+          continue;
+        }
+        if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
+        copyDirRecursive(src, dest);
+        totalSkills++;
+      }
+    }
+
+    const counts = [];
+    if (metadata.agents?.length) counts.push(`${metadata.agents.length} agent(s)`);
+    if (metadata.skills?.length) counts.push(`${metadata.skills.length} skill(s)`);
+    console.log(`✓ ${pluginName}: ${counts.join(", ") || "nothing to copy"}`);
+  }
+
+  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills.`);
+  if (errors > 0) {
+    console.error(`${errors} error(s).`);
+    process.exit(1);
+  }
+}
+
+materializePlugins();

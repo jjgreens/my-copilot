@@ -1,0 +1,20 @@
+{
+  "name": "pr-review-workflow",
+  "description": "Drive GitHub PRs through the Copilot review cycle to merge-ready: monitor CI, manage review threads, and follow a disciplined fix-review-resolve workflow.",
+  "version": "1.0.0",
+  "author": {
+    "name": "jjgreens"
+  },
+  "repository": "https://github.com/jjgreens/my-copilot",
+  "license": "MIT",
+  "keywords": [
+    "github-copilot",
+    "pull-request",
+    "code-review",
+    "ci",
+    "workflow"
+  ],
+  "skills": [
+    "./skills/pr-review-workflow"
+  ]
+}

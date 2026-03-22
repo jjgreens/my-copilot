@@ -4,7 +4,7 @@
 
 ---
 
-## [0.1.0] - 2026-03-22
+## [1.0.0] - 2026-03-22
 
 ### Added — feat: add pr-review-workflow plugin and repo scaffolding (#1)
 

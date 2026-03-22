@@ -10,6 +10,7 @@
 git checkout main && git pull
 git checkout -b <branch-name>
 # make changes
+git add -A && git commit -m "your message"
 git push -u origin <branch-name>
 gh pr create
 ```

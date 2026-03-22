@@ -6,7 +6,7 @@ applyTo: '**'
 # Git Workflow
 
 - **Always work through a local clone.** Do not use the GitHub API (`push_files`, `create_or_update_file`, etc.) to commit directly to a remote. Make edits locally, commit with `git commit`, and push with `git push`.
-- **Never use `git push --force` or `git push --force-with-lease`.** If a branch needs to be replaced (e.g., rebased or recreated from a clean base), rename the stale remote branch first to archive it (`git push origin <old>:<old>-stale`), delete the original remote name (`git push origin --delete <old>`), then push the clean local branch normally.
+- **Never use `git push --force` or `git push --force-with-lease`.** If a branch needs to be replaced (e.g., rebased or recreated from a clean base), rename the stale remote branch first to archive it (`git fetch origin && git push origin origin/<old>:refs/heads/<old>-stale`), delete the original remote name (`git push origin --delete <old>`), then push the clean local branch normally.
 - **Always start a new branch from an up-to-date `main`:** `git checkout main && git pull`, then `git checkout -b <branch-name>`.
 
 ## Branch and PR Policy

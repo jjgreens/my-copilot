@@ -14,6 +14,8 @@ fi
 echo "Monitoring $REPO PR #$PR — will exit when all checks and Copilot review complete"
 echo ""
 
+EMPTY_RUNS_POLLS=0
+
 while true; do
   echo "=== $(date -u +%H:%M:%SZ) ==="
 
@@ -43,13 +45,16 @@ while true; do
   REVIEW_DONE=$([ -n "$REVIEW" ] && echo 1 || echo 0)
 
   if [ -z "$RUNS" ]; then
-    if [ "$REVIEW_DONE" -gt 0 ]; then
+    EMPTY_RUNS_POLLS=$((EMPTY_RUNS_POLLS + 1))
+    # Wait up to 3 consecutive empty polls (~90s) before treating as no CI configured.
+    if [ "$EMPTY_RUNS_POLLS" -ge 3 ] && [ "$REVIEW_DONE" -gt 0 ]; then
       echo "✅ All checks and Copilot review complete."
       break
     fi
     echo "(no workflow runs found yet — waiting)"
     IN_PROGRESS=1
   else
+    EMPTY_RUNS_POLLS=0
     IN_PROGRESS=$(echo "$RUNS" | grep -cE ": (in_progress|queued|waiting) /" || true)
   fi
 

@@ -85,7 +85,7 @@ If the repo has a required pre-commit build or generation step (e.g. `npm run bu
 One commit per review round (include any generated artifacts). Then repeat from Step 1.
 
 > ⚠️ **Order matters**: always push the fix commit *before* requesting the next review.
-> Requesting review before committing means Copilot reviews the unfixed code.
+> Requesting review before pushing means Copilot reviews the unfixed code.
 
 ## Pre-Merge Checklist
 

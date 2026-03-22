@@ -195,13 +195,17 @@ function materializePlugins() {
 function materializeInstructions() {
   const destDir = path.join(ROOT_FOLDER, ".github", "instructions");
 
-  if (!fs.existsSync(INSTRUCTIONS_DIR)) return;
+  if (!fs.existsSync(INSTRUCTIONS_DIR)) {
+    // No source dir — clean any stale output and return.
+    if (fs.existsSync(destDir)) fs.rmSync(destDir, { recursive: true, force: true });
+    return;
+  }
 
   const files = fs.readdirSync(INSTRUCTIONS_DIR).filter(f => f.endsWith(".instructions.md"));
-  if (files.length === 0) return;
 
-  // Clean stale copies before writing fresh ones.
+  // Always clean stale output, even when there are no source files.
   if (fs.existsSync(destDir)) fs.rmSync(destDir, { recursive: true, force: true });
+  if (files.length === 0) return;
   fs.mkdirSync(destDir, { recursive: true });
 
   for (const file of files) {

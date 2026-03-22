@@ -24,7 +24,7 @@ which is the standard installation location.**
 
 | Script | Purpose |
 |--------|---------|
-| `.github/skills/pr-review-workflow/scripts/request_copilot_review.sh <owner/repo> <pr>` | Request Copilot review — skips if already queued/in-progress (idempotent) |
+| `.github/skills/pr-review-workflow/scripts/request_copilot_review.sh <owner/repo> <pr>` | Request Copilot review — skips if already queued, in-progress, or completed for HEAD (idempotent) |
 | `.github/skills/pr-review-workflow/scripts/monitor_ci_pr.sh <owner/repo> <pr>` | Poll CI runs + Copilot review; exit when all done |
 | `.github/skills/pr-review-workflow/scripts/show_pr_review_comments.py <owner/repo> <pr>` | List **all** active review threads with numbers (full GraphQL pagination) |
 | `.github/skills/pr-review-workflow/scripts/show_ci_annotations.py <owner/repo> <pr>` | Per-run check output summaries (e.g. MegaLinter analysis) **and** file/line annotations for the HEAD commit |
@@ -48,10 +48,10 @@ Repeat this loop until the Copilot review comes back clean with no issues:
 .github/skills/pr-review-workflow/scripts/request_copilot_review.sh <owner/repo> <pr>
 ```
 
-This script checks whether a Copilot review is already queued or in progress for the current
-HEAD commit before requesting one. Repos with automatic review settings trigger a review on
-every push — requesting a second one is redundant. The script is idempotent: safe to call
-unconditionally regardless of whether auto-review is enabled.
+This script checks whether a Copilot review check run is already queued, in progress, or
+completed for the current HEAD commit before requesting one. Repos with automatic review
+settings trigger a review on every push — requesting a second one is redundant. The script
+is idempotent: safe to call unconditionally regardless of whether auto-review is enabled.
 
 ### Step 2: Resolve Open Threads
 

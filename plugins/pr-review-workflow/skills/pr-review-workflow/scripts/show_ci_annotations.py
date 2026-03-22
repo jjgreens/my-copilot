@@ -31,20 +31,17 @@ def gh(*args):
         sys.exit(1)
     try:
         result = subprocess.run(
-            ["gh", "api", "--paginate"] + list(args),
+            ["gh", "api", "--paginate", "--slurp"] + list(args),
             capture_output=True, text=True, check=True
         )
     except subprocess.CalledProcessError as e:
         print(f"Error: gh API call failed:\n{e.stderr.strip()}", file=sys.stderr)
         sys.exit(1)
-    pages = []
-    for line in result.stdout.splitlines():
-        line = line.strip()
-        if line:
-            pages.append(json.loads(line))
+    # --slurp wraps all pages into a single JSON array; unwrap single-page results
+    pages = json.loads(result.stdout)
     if len(pages) == 1:
         return pages[0]
-    # --paginate emits one JSON object per page; merge arrays
+    # Multiple pages: merge arrays (or extract list values from dicts)
     merged = []
     for page in pages:
         if isinstance(page, list):

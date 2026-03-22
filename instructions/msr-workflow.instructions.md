@@ -10,22 +10,23 @@ At the end of every work session, update the active MSR in OneDrive.
 ## Location
 
 MSR files are in OneDrive at:
-`Documents/msr/2026/jjgreens/`
+`Documents/msr/<YEAR>/jjgreens/`
 
 Naming convention: `CTO-Team_SSASP_APPL_SPL_James-Greensky_MSR_<MON>_<YEAR>.md`
 
 Example: `CTO-Team_SSASP_APPL_SPL_James-Greensky_MSR_APR_2026.md`
 
 Templates are in:
-`Documents/msr/2026/jjgreens/template/`
+`Documents/msr/<YEAR>/jjgreens/template/`
 
 ## Which MSR to Update
 
 The active MSR is determined by what exists in OneDrive:
 
-1. Check if **next month's** MSR file exists (e.g. if current month is March, look for the April file)
-2. If next month's file exists → update it
-3. If next month's file does not exist → update the current month's file
+1. Compute next month's `<MON>_<YEAR>` (e.g. March 2026 → `APR_2026`; December 2026 → `JAN_2027` in the `2027` folder)
+2. Check if that next-month file exists in OneDrive
+3. If it exists → update it
+4. If it does not exist → update the current month's file
 
 This reflects the practice of opening next month's report partway through the current month.
 

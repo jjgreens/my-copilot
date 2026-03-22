@@ -49,22 +49,27 @@ function copyDirRecursive(src, dest) {
  *   ./skills/bar/               → ROOT/skills/bar/
  */
 function resolveSource(relPath) {
-  // Reject path traversal attempts.
-  if (relPath.split("/").some(seg => seg === "..")) {
+  // Reject path traversal attempts (slash-separated and backslash-separated).
+  if (relPath.split(/[/\\]/).some(seg => seg === "..")) {
     return null;
   }
+  let result;
   if (relPath.startsWith("./agents/")) {
     // Preserve subpath: ./agents/foo.md → ROOT/agents/foo.agent.md
     //                   ./agents/team/foo.md → ROOT/agents/team/foo.agent.md
     const withoutPrefix = relPath.slice("./agents/".length);
     const withoutExt = withoutPrefix.replace(/\.md$/, "");
-    return path.join(ROOT_FOLDER, "agents", withoutExt + ".agent.md");
-  }
-  if (relPath.startsWith("./skills/")) {
+    result = path.join(ROOT_FOLDER, "agents", withoutExt + ".agent.md");
+  } else if (relPath.startsWith("./skills/")) {
     const skillName = relPath.replace(/^\.\/skills\//, "").replace(/\/$/, "");
-    return path.join(ROOT_FOLDER, "skills", skillName);
+    result = path.join(ROOT_FOLDER, "skills", skillName);
+  } else {
+    return null;
   }
-  return null;
+  // Final guard: verify the resolved path stays within ROOT_FOLDER.
+  const rootAbs = path.resolve(ROOT_FOLDER) + path.sep;
+  if (!path.resolve(result).startsWith(rootAbs)) return null;
+  return result;
 }
 
 function materializePlugins() {

@@ -6,6 +6,11 @@
 REPO="${1:?Usage: monitor_ci_pr.sh <owner/repo> <pr_number>}"
 PR="${2:?Usage: monitor_ci_pr.sh <owner/repo> <pr_number>}"
 
+if ! command -v gh > /dev/null 2>&1; then
+  echo "Error: gh CLI not found — install it from https://cli.github.com and authenticate with 'gh auth login'."
+  exit 1
+fi
+
 echo "Monitoring $REPO PR #$PR — will exit when all checks and Copilot review complete"
 echo ""
 

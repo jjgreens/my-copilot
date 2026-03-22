@@ -199,8 +199,10 @@ def do_reply(num, thread, body):
     result = graphql(REPLY_MUTATION, {"threadId": node_id, "body": body})
     if result.get("data", {}).get("addPullRequestReviewThreadReply"):
         print(f"[{num}] ✅ Replied — {path}: {preview}")
+        return True
     else:
-        print(f"[{num}] ❌ Failed — {result.get('errors', [])}")
+        print(f"[{num}] ❌ Reply failed — {result.get('errors', [])}")
+        return False
 
 if action == "fix":
     # Last arg is the message; all preceding args after action are thread numbers
@@ -224,8 +226,8 @@ if action == "fix":
             print(f"[{num}] Already resolved — skipping ({c.get('path', '?')})")
             continue
         body = f"[FIXED] {message}" if _is_deferred(thread) else message
-        do_reply(num, thread, body)
-        do_resolve(num, thread)
+        if do_reply(num, thread, body):
+            do_resolve(num, thread)
 
 elif action == "reply":
     try:
@@ -253,8 +255,8 @@ elif action == "defer":
         print(f"[{num}] Thread not found (max: {max_num})")
         sys.exit(1)
     body = f"[DEFERRED] {context}".strip()
-    do_reply(num, thread, body)
-    do_resolve(num, thread)
+    if do_reply(num, thread, body):
+        do_resolve(num, thread)
 
 elif action == "list-deferred":
     found = []

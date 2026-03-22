@@ -2,10 +2,12 @@
 """
 show_ci_annotations.py <owner/repo> <pr>
 
-For every CI check run on the HEAD commit of a PR, reports:
+For CI check runs on the HEAD commit of a PR that have actionable findings
+(non-success/neutral conclusion, or warning/failure-level annotations), reports:
   1. The check run output summary (tool-level report, e.g. MegaLinter analysis)
   2. File/line annotations at warning or failure level
 
+Check runs that completed successfully with no annotations are silently skipped.
 These are two distinct GitHub surfaces — both must be checked each round.
 The output summary is the canonical per-run report tied to the current HEAD;
 it is never stale, unlike PR issue comments which accumulate across runs.
@@ -116,7 +118,7 @@ def main():
             print(f"  {level.upper():7} {path}:{line}  {msg}")
 
     if total_summaries == 0 and total_annotations == 0:
-        print(f"✅ No CI output summaries or annotations found for {short_sha}.")
+        print(f"✅ No actionable CI findings for {short_sha} (all check runs clean).")
     else:
         if total_annotations > 0:
             print(f"\n⚠️  {total_annotations} annotation(s) found — address before merging.")

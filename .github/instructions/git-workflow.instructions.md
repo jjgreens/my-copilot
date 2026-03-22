@@ -37,6 +37,8 @@ When driving a PR through the Copilot review cycle using the `pr-review-workflow
 
 Before merging, complete the pre-merge checklist from the `pr-review-workflow` skill, then update `CHANGELOG.md` with a brief summary of the changes (title, PR number, key changes) as a final commit in the PR.
 
+**Any commit made during the pre-merge checklist (including the CHANGELOG update) requires a new Copilot review request and a clean result before merging.**
+
 ## Merge Process
 
 **During squash merge:** Write a concise commit body summarizing the key changes.

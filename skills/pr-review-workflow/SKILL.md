@@ -96,3 +96,6 @@ scripts/pr_thread.py <owner/repo> <pr> list-deferred
 ```
 
 For each deferred item: either fix and mark `[FIXED]`, or create a follow-up issue.
+
+If any changes are made during the pre-merge checklist (e.g. CHANGELOG update, deferred fixes),
+commit and push them, then request a new Copilot review and get a clean result before merging.

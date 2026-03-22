@@ -189,9 +189,12 @@ def _all_comment_bodies(thread):
     cursor = page_info.get("endCursor")
     while page_info.get("hasNextPage") and cursor:
         result = graphql(THREAD_COMMENTS_QUERY, {"id": thread["id"], "after": cursor})
-        comments = (result.get("data") or {}).get("node", {}).get("comments", {})
+        if result.get("errors"):
+            print(f"Warning: GraphQL errors paginating comments for thread {thread['id']}: {result['errors']}", file=sys.stderr)
+            break
+        comments = (result.get("data") or {}).get("node", {}).get("comments") or {}
         nodes.extend(comments.get("nodes", []))
-        page_info = comments.get("pageInfo", {})
+        page_info = comments.get("pageInfo") or {}
         cursor = page_info.get("endCursor")
     return [n.get("body") or "" for n in nodes]
 

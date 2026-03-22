@@ -4,6 +4,19 @@
 
 ---
 
+## [1.0.3] - 2026-03-22
+
+### Changed — fix: pr-review-workflow skill improvements (#5)
+
+- `skills/pr-review-workflow/SKILL.md`: added install-path note to Tools section; simplified one-commit warning to plain constraint statements (removed ambiguous sequence line)
+- `skills/pr-review-workflow/scripts/request_copilot_review.sh`: extended idempotency to also skip when a Copilot review check run is already `completed` for HEAD
+- `skills/pr-review-workflow/scripts/show_ci_annotations.py`: use `output` from initial check-runs list response (no extra per-run API call); skip incomplete runs and count them separately; fix "all clean" message to only print when CI is fully done; update docstring to reflect filtered (actionable-only) reporting
+- `skills/pr-review-workflow/scripts/show_pr_comments.py`: update docstring to name all three PR comment surfaces and clarify this script covers issue comments only
+- `skills/pr-review-workflow/scripts/show_pr_review_comments.py`: make suggested `pr_thread.py` path dynamic via `__file__` + `shlex.quote` instead of hardcoded install path
+- `plugins/pr-review-workflow/`: regenerated from `skills/` via `npm run plugin:build`
+
+---
+
 ## [1.0.2] - 2026-03-22
 
 ### Added — docs: add msr-workflow instructions (#4)

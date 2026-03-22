@@ -39,7 +39,9 @@ which is the standard installation location.**
 > **⚠️ One commit per round — no exceptions.**
 > Collect ALL issues from ALL sources before touching a single file.
 > If you fix something and then discover another issue, that is a skill violation.
-> The correct per-round sequence: **request review → resolve threads → monitor → collect → fix → single commit → push.**
+> The correct per-round sequence (each round is one full loop iteration):
+> **fix → single commit → push → request review → resolve threads → monitor → collect.**
+> Push always comes *before* requesting review so Copilot reviews the fixed code.
 
 Repeat this loop until the Copilot review comes back clean with no issues:
 

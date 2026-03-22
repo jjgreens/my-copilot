@@ -79,9 +79,8 @@ def main():
         run_name = run["name"]
         conclusion = run.get("conclusion") or run.get("status", "unknown")
 
-        # Fetch the full check run to get output.summary
-        run_detail = gh(f"repos/{repo}/check-runs/{run_id}")
-        output = run_detail.get("output", {}) if isinstance(run_detail, dict) else {}
+        # Use output data already present in the list response (avoids an extra API call per run)
+        output = run.get("output", {}) if isinstance(run, dict) else {}
         summary = (output.get("summary") or "").strip()
         ann_count = output.get("annotations_count", 0)
 

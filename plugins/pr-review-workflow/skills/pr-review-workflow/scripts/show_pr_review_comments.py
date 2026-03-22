@@ -8,10 +8,10 @@ Usage:
 
 Requires GH_TOKEN or GITHUB_TOKEN env var, or a valid `gh auth` session.
 """
-import json, os, sys, urllib.request, urllib.error
+import json, os, shlex, sys, urllib.request, urllib.error
 
 def _script_path(name: str) -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    return shlex.quote(os.path.join(os.path.dirname(os.path.abspath(__file__)), name))
 
 def usage():
     print(__doc__)

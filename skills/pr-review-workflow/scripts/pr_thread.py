@@ -63,7 +63,7 @@ if action == "reply" and len(sys.argv) != 6:
     print("reply requires exactly one thread number and a message.")
     usage()
 if action == "defer" and len(sys.argv) < 5:
-    print("defer requires exactly one thread number.")
+    print("defer requires one thread number and an optional context string.")
     usage()
 if action == "defer" and len(sys.argv) > 6:
     print("defer takes one thread number and an optional context string — did you mean to quote the context?")

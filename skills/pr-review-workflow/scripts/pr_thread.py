@@ -121,6 +121,10 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
 }
 """
 
+if "/" not in repo:
+    print(f"Invalid repo format: {repo!r} — expected owner/repo")
+    usage()
+
 owner, name = repo.split("/", 1)
 all_threads = []
 after = None
@@ -161,11 +165,13 @@ mutation($threadId: ID!, $body: String!) {
 def _is_deferred(thread):
     """Return True if thread has a [DEFERRED] comment with no subsequent [FIXED]."""
     recent = thread["recentComments"]["nodes"]
-    deferred = [c for c in recent if (c.get("body") or "").startswith("[DEFERRED]")]
-    if not deferred:
+    last_deferred_idx = None
+    for i, c in enumerate(recent):
+        if (c.get("body") or "").startswith("[DEFERRED]"):
+            last_deferred_idx = i
+    if last_deferred_idx is None:
         return False
-    last_idx = recent.index(deferred[-1])
-    return not any((c.get("body") or "").startswith("[FIXED]") for c in recent[last_idx + 1:])
+    return not any((c.get("body") or "").startswith("[FIXED]") for c in recent[last_deferred_idx + 1:])
 
 def do_resolve(num, thread):
     node_id = thread["id"]
@@ -195,33 +201,48 @@ def do_reply(num, thread, body):
 if action == "fix":
     # Last arg is the message; all preceding args after action are thread numbers
     message = sys.argv[-1]
-    nums = [int(x) for x in sys.argv[4:-1]]
+    try:
+        nums = [int(x) for x in sys.argv[4:-1]]
+    except ValueError as e:
+        print(f"Invalid thread number: {e}")
+        usage()
     if not nums:
         print("fix requires at least one thread number before the message.")
         usage()
     for num in nums:
         thread = numbered.get(num)
         if not thread:
-            print(f"[{num}] Thread not found (max: {max(numbered)})")
+            max_num = max(numbered) if numbered else 0
+            print(f"[{num}] Thread not found (max: {max_num})")
             continue
         body = f"[FIXED] {message}" if _is_deferred(thread) else message
         do_reply(num, thread, body)
         do_resolve(num, thread)
 
 elif action == "reply":
-    num = int(sys.argv[4])
+    try:
+        num = int(sys.argv[4])
+    except ValueError:
+        print(f"Invalid thread number: {sys.argv[4]!r}")
+        usage()
     thread = numbered.get(num)
     if not thread:
-        print(f"[{num}] Thread not found (max: {max(numbered)})")
+        max_num = max(numbered) if numbered else 0
+        print(f"[{num}] Thread not found (max: {max_num})")
         sys.exit(1)
     do_reply(num, thread, sys.argv[5])
 
 elif action == "defer":
-    num = int(sys.argv[4])
+    try:
+        num = int(sys.argv[4])
+    except ValueError:
+        print(f"Invalid thread number: {sys.argv[4]!r}")
+        usage()
     context = sys.argv[5] if len(sys.argv) > 5 else ""
     thread = numbered.get(num)
     if not thread:
-        print(f"[{num}] Thread not found (max: {max(numbered)})")
+        max_num = max(numbered) if numbered else 0
+        print(f"[{num}] Thread not found (max: {max_num})")
         sys.exit(1)
     body = f"[DEFERRED] {context}".strip()
     do_reply(num, thread, body)

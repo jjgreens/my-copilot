@@ -24,6 +24,12 @@ if "/" not in repo:
     print(f"Invalid repo format: {repo!r} — expected owner/repo")
     usage()
 
+try:
+    int(pr_num)
+except ValueError:
+    print(f"Invalid PR number: {pr_num!r} — expected an integer.")
+    usage()
+
 token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
 if not token:
     import subprocess

@@ -122,6 +122,7 @@ function materializePlugins() {
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
         fs.mkdirSync(path.dirname(dest), { recursive: true });
+        if (fs.existsSync(dest)) fs.rmSync(dest, { force: true });
         fs.copyFileSync(src, dest);
         totalAgents++;
       }
@@ -142,6 +143,7 @@ function materializePlugins() {
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
+        if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
         copyDirRecursive(src, dest);
         totalSkills++;
       }

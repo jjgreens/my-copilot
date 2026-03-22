@@ -24,8 +24,8 @@ while true; do
 
   # Filter: copilot bot (login starts with "copilot-pull-request-reviewer"),
   # submitted for the current HEAD commit, and submitted_at is not null.
-  # Use --paginate to fetch ALL reviews (default page size is 30, may miss latest).
-  REVIEW=$(gh api --paginate "repos/${REPO}/pulls/${PR}/reviews" \
+  # per_page=100 is sufficient; PRs typically have a handful of reviews.
+  REVIEW=$(gh api "repos/${REPO}/pulls/${PR}/reviews?per_page=100" \
     --jq "[.[] | select((.user.login | startswith(\"copilot-pull-request-reviewer\")) and .commit_id == \"${HEAD_SHA}\" and .submitted_at != null)] | last | \"Copilot review: \(.state) (\(.submitted_at))\"" 2>/dev/null)
   echo "$REVIEW"
 

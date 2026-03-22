@@ -41,6 +41,8 @@ while true; do
 
   echo ""
 
+  REVIEW_DONE=$([ -n "$REVIEW" ] && echo 1 || echo 0)
+
   if [ -z "$RUNS" ]; then
     if [ "$REVIEW_DONE" -gt 0 ]; then
       echo "✅ All checks and Copilot review complete."
@@ -51,7 +53,6 @@ while true; do
   else
     IN_PROGRESS=$(echo "$RUNS" | grep -c "in_progress\|queued\|waiting" || true)
   fi
-  REVIEW_DONE=$([ -n "$REVIEW" ] && echo 1 || echo 0)
 
   if [ "$IN_PROGRESS" -eq 0 ] && [ "$REVIEW_DONE" -gt 0 ]; then
     echo "✅ All checks and Copilot review complete."

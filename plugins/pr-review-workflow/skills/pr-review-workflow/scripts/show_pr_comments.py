@@ -2,12 +2,13 @@
 """
 show_pr_comments.py <owner/repo> <pr>
 
-Lists ALL general PR comments (bot and human) from the PR Conversation tab.
+Lists PR issue comments (general discussion, not formal review submissions)
+from the PR Conversation tab.
 These are distinct from inline code review threads (show_pr_review_comments.py).
 
 GitHub PRs have two comment surfaces:
   1. Review threads — inline code comments from a formal review submission
-  2. PR comments    — general discussion on the PR timeline (this script)
+  2. PR issue comments — general discussion on the PR timeline (this script)
 
 Both must be checked each round. Bot tool summaries (MegaLinter, GHAS,
 Dependabot, etc.) and human reviewer comments left outside a formal review

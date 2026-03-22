@@ -96,7 +96,9 @@ def main():
             else:
                 print(summary)
 
-        # Fetch annotations for this check run
+        # Fetch annotations only when the check run reports there are some
+        if not ann_count:
+            continue
         annotations = gh(f"repos/{repo}/check-runs/{run_id}/annotations?per_page=100")
         if not annotations:
             continue

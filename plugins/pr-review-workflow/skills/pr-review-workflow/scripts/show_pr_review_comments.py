@@ -10,6 +10,9 @@ Requires GH_TOKEN or GITHUB_TOKEN env var, or a valid `gh auth` session.
 """
 import json, os, sys, urllib.request, urllib.error
 
+def _script_path(name: str) -> str:
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+
 def usage():
     print(__doc__)
     sys.exit(1)
@@ -119,7 +122,7 @@ print(f"PR {repo}#{pr_num} — {len(threads)} threads total")
 print(f"  Active: {len(active)}  Outdated: {outdated}  Resolved: {resolved}")
 if outdated_unresolved:
     nums = " ".join(str(n) for n, _ in outdated_unresolved)
-    print(f"  ⚠️  Outdated but unresolved [{nums}] — these show as open in the web UI. Run: .github/skills/pr-review-workflow/scripts/pr_thread.py {repo} {pr_num} fix {nums} \"<message>\"")
+    print(f"  ⚠️  Outdated but unresolved [{nums}] — these show as open in the web UI. Run: {_script_path('pr_thread.py')} {repo} {pr_num} fix {nums} \"<message>\"")
 print()
 
 for num, t in active:

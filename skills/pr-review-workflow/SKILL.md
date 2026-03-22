@@ -19,6 +19,8 @@ Use this skill when:
 
 Scripts live in `.github/skills/pr-review-workflow/scripts/` and require `gh` CLI, `jq`, and Python 3.
 All commands below assume the repo root as the working directory.
+**These paths assume the skill is installed to `.github/skills/pr-review-workflow/` in the consuming repo,
+which is the standard installation location.**
 
 | Script | Purpose |
 |--------|---------|
@@ -37,7 +39,7 @@ All commands below assume the repo root as the working directory.
 > **⚠️ One commit per round — no exceptions.**
 > Collect ALL issues from ALL sources before touching a single file.
 > If you fix something and then discover another issue, that is a skill violation.
-> The correct sequence every round: **collect → fix → commit → push → review → resolve → monitor.**
+> The correct per-round sequence: **request review → resolve threads → monitor → collect → fix → single commit → push.**
 
 Repeat this loop until the Copilot review comes back clean with no issues:
 

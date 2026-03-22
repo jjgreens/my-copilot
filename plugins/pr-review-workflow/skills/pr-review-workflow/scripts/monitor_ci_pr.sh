@@ -51,7 +51,7 @@ while true; do
     echo "(no workflow runs found yet — waiting)"
     IN_PROGRESS=1
   else
-    IN_PROGRESS=$(echo "$RUNS" | grep -c "in_progress\|queued\|waiting" || true)
+    IN_PROGRESS=$(echo "$RUNS" | grep -cE ": (in_progress|queued|waiting) /" || true)
   fi
 
   if [ "$IN_PROGRESS" -eq 0 ] && [ "$REVIEW_DONE" -gt 0 ]; then

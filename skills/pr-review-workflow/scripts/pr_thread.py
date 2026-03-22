@@ -102,7 +102,9 @@ def graphql(query, variables):
 
 # Fetch all threads.
 # originalComment(first:1): the thread's first comment (path, line, issue text).
-# recentComments(last:100): recent replies for DEFERRED/FIXED detection.
+# allComments(first:100): first page of all comments — 100 is the API max per page
+#   and covers all practical cases inline. _all_comment_bodies() paginates beyond
+#   100 when hasNextPage is true, so [DEFERRED]/[FIXED] detection is always correct.
 LIST_QUERY = """
 query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
@@ -115,10 +117,24 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
           originalComment: comments(first: 1) {
             nodes { path line body author { login } url }
           }
-          recentComments: comments(last: 100) {
+          allComments: comments(first: 100) {
+            pageInfo { hasNextPage endCursor }
             nodes { body author { login } }
           }
         }
+      }
+    }
+  }
+}
+"""
+
+THREAD_COMMENTS_QUERY = """
+query($id: ID!, $after: String) {
+  node(id: $id) {
+    ... on PullRequestReviewThread {
+      comments(first: 100, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        nodes { body author { login } }
       }
     }
   }
@@ -166,16 +182,29 @@ mutation($threadId: ID!, $body: String!) {
 }
 """
 
+def _all_comment_bodies(thread):
+    """Return all comment bodies for the thread, paginating beyond the first 100 if needed."""
+    nodes = list(thread["allComments"]["nodes"])
+    page_info = thread["allComments"]["pageInfo"]
+    cursor = page_info.get("endCursor")
+    while page_info.get("hasNextPage") and cursor:
+        result = graphql(THREAD_COMMENTS_QUERY, {"id": thread["id"], "after": cursor})
+        comments = (result.get("data") or {}).get("node", {}).get("comments", {})
+        nodes.extend(comments.get("nodes", []))
+        page_info = comments.get("pageInfo", {})
+        cursor = page_info.get("endCursor")
+    return [n.get("body") or "" for n in nodes]
+
 def _is_deferred(thread):
     """Return True if thread has a [DEFERRED] comment with no subsequent [FIXED]."""
-    recent = thread["recentComments"]["nodes"]
+    bodies = _all_comment_bodies(thread)
     last_deferred_idx = None
-    for i, c in enumerate(recent):
-        if (c.get("body") or "").startswith("[DEFERRED]"):
+    for i, body in enumerate(bodies):
+        if body.startswith("[DEFERRED]"):
             last_deferred_idx = i
     if last_deferred_idx is None:
         return False
-    return not any((c.get("body") or "").startswith("[FIXED]") for c in recent[last_deferred_idx + 1:])
+    return not any(b.startswith("[FIXED]") for b in bodies[last_deferred_idx + 1:])
 
 def do_resolve(num, thread):
     node_id = thread["id"]
@@ -264,9 +293,9 @@ elif action == "list-deferred":
         if _is_deferred(t):
             original = t["originalComment"]["nodes"]
             first = original[0] if original else {}
-            recent = t["recentComments"]["nodes"]
-            deferred_replies = [c for c in recent if (c.get("body") or "").startswith("[DEFERRED]")]
-            found.append((i + 1, t, first, deferred_replies[-1]))
+            all_bodies = _all_comment_bodies(t)
+            deferred_bodies = [b for b in all_bodies if b.startswith("[DEFERRED]")]
+            found.append((i + 1, t, first, deferred_bodies[-1]))
 
     if not found:
         print("No deferred threads found.")
@@ -276,7 +305,7 @@ elif action == "list-deferred":
             path = first.get("path", "?")
             line = first.get("line") or ""
             issue_text = (first.get("body") or "")[:120]
-            context = (deferred.get("body") or "")[len("[DEFERRED]"):].strip()
+            context = deferred_bodies[-1][len("[DEFERRED]"):].strip()
             status = "resolved" if t["isResolved"] else "OPEN"
             print(f"[{num}] {path}:{line} ({status})")
             print(f"  Issue: {issue_text}")

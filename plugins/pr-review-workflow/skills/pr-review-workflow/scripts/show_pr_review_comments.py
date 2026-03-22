@@ -118,7 +118,7 @@ resolved          = sum(1 for t in threads if t["isResolved"])
 print(f"PR {repo}#{pr_num} — {len(threads)} threads total")
 print(f"  Active: {len(active)}  Outdated: {outdated}  Resolved: {resolved}")
 if outdated_unresolved:
-    print(f"  ⚠️  Outdated but unresolved: {len(outdated_unresolved)} — these show as open in the web UI. Run: pr_thread.py {repo} {pr_num} fix <N...> \"<message>\"")
+    print(f"  ⚠️  Outdated but unresolved: {len(outdated_unresolved)} — these show as open in the web UI. Run: scripts/pr_thread.py {repo} {pr_num} fix <N...> \"<message>\"")
 print()
 
 for num, t in active:

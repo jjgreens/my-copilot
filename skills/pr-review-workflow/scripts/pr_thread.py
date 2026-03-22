@@ -216,6 +216,10 @@ if action == "fix":
             max_num = max(numbered) if numbered else 0
             print(f"[{num}] Thread not found (max: {max_num})")
             continue
+        if thread["isResolved"]:
+            c = thread["originalComment"]["nodes"][0] if thread["originalComment"]["nodes"] else {}
+            print(f"[{num}] Already resolved — skipping ({c.get('path', '?')})")
+            continue
         body = f"[FIXED] {message}" if _is_deferred(thread) else message
         do_reply(num, thread, body)
         do_resolve(num, thread)

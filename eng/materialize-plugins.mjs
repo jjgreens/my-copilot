@@ -32,6 +32,7 @@ function copyDirRecursive(src, dest) {
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     if (SKIP_NAMES.has(entry.name)) continue;
     if (!entry.isDirectory() && SKIP_EXTS.has(path.extname(entry.name))) continue;
+    if (entry.isSymbolicLink()) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
@@ -93,7 +94,6 @@ function materializePlugins() {
 
   let totalAgents = 0;
   let totalSkills = 0;
-  let warnings = 0;
   let errors = 0;
 
   for (const dirName of pluginDirs) {
@@ -181,7 +181,6 @@ function materializePlugins() {
   }
 
   console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills.`);
-  if (warnings > 0) console.log(`${warnings} warning(s).`);
   if (errors > 0) {
     console.error(`${errors} error(s).`);
     process.exit(1);

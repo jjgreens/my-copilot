@@ -49,6 +49,10 @@ function copyDirRecursive(src, dest) {
  *   ./skills/bar/               → ROOT/skills/bar/
  */
 function resolveSource(relPath) {
+  // Reject path traversal attempts.
+  if (relPath.split("/").some(seg => seg === "..")) {
+    return null;
+  }
   if (relPath.startsWith("./agents/")) {
     // Preserve subpath: ./agents/foo.md → ROOT/agents/foo.agent.md
     //                   ./agents/team/foo.md → ROOT/agents/team/foo.agent.md
@@ -121,6 +125,11 @@ function materializePlugins() {
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
+        if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
+          console.warn(`  ⚠ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          warnings++;
+          continue;
+        }
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         if (fs.existsSync(dest)) fs.rmSync(dest, { force: true });
         fs.copyFileSync(src, dest);
@@ -143,6 +152,11 @@ function materializePlugins() {
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
+        if (!path.resolve(dest).startsWith(path.resolve(pluginPath) + path.sep)) {
+          console.warn(`  ⚠ ${pluginName}: Destination escapes plugin directory: ${dest}`);
+          warnings++;
+          continue;
+        }
         if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
         copyDirRecursive(src, dest);
         totalSkills++;

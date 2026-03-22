@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 """
 Act on GitHub PR review threads by their display number.
 
@@ -84,7 +84,7 @@ if not token:
 headers = {
     "Accept": "application/vnd.github+json",
     "Content-Type": "application/json",
-    "Authorization": f"token {token}",
+    "Authorization": f"Bearer {token}",
 }
 
 def graphql(query, variables):

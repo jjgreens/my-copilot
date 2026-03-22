@@ -84,7 +84,7 @@ if not token:
 headers = {
     "Accept": "application/vnd.github+json",
     "Content-Type": "application/json",
-    "Authorization": f"token {token}",
+    "Authorization": f"Bearer {token}",
 }
 
 def graphql(query, variables):

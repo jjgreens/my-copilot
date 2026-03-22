@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 """
 Show active (not outdated, not resolved) GitHub PR review threads.
 
@@ -43,7 +43,7 @@ if not token:
     print("Error: no authentication token available — set GH_TOKEN/GITHUB_TOKEN or run 'gh auth login'.")
     sys.exit(1)
 
-headers = {"Accept": "application/vnd.github+json", "Authorization": f"token {token}"}
+headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}"}
 
 # GraphQL query — returns all threads with pagination
 QUERY = """

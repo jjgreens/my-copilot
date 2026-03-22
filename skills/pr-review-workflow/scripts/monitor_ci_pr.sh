@@ -36,7 +36,12 @@ while true; do
 
   echo ""
 
-  IN_PROGRESS=$(echo "$RUNS" | grep -c "in_progress\|queued\|waiting" || true)
+  if [ -z "$RUNS" ]; then
+    echo "(no workflow runs found yet — waiting)"
+    IN_PROGRESS=1
+  else
+    IN_PROGRESS=$(echo "$RUNS" | grep -c "in_progress\|queued\|waiting" || true)
+  fi
   REVIEW_DONE=$([ -n "$REVIEW" ] && echo 1 || echo 0)
 
   if [ "$IN_PROGRESS" -eq 0 ] && [ "$REVIEW_DONE" -gt 0 ]; then

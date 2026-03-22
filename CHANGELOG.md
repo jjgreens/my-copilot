@@ -4,6 +4,15 @@
 
 ---
 
+## [1.0.2] - 2026-03-22
+
+### Added — docs: add msr-workflow instructions (#4)
+
+- `instructions/msr-workflow.instructions.md`: end-of-session MSR update workflow — naming convention, active-file logic (next-month with Dec→Jan rollover), what sections to update, and upload steps
+- `.github/instructions/msr-workflow.instructions.md`: materialized copy (generated via `plugin:build`)
+
+---
+
 ## [1.0.1] - 2026-03-22
 
 ### Changed — docs: session learnings from PR #1 review cycle (#3)

@@ -42,6 +42,10 @@ while true; do
   echo ""
 
   if [ -z "$RUNS" ]; then
+    if [ "$REVIEW_DONE" -gt 0 ]; then
+      echo "✅ All checks and Copilot review complete."
+      break
+    fi
     echo "(no workflow runs found yet — waiting)"
     IN_PROGRESS=1
   else

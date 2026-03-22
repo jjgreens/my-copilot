@@ -115,6 +115,12 @@ function materializePlugins() {
 
     const pluginName = metadata.name || dirName;
 
+    // Remove stale materialized files before copying fresh ones.
+    for (const subdir of ["agents", "skills"]) {
+      const target = path.join(pluginPath, subdir);
+      if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });
+    }
+
     // Process agents
     if (Array.isArray(metadata.agents)) {
       for (const relPath of metadata.agents) {

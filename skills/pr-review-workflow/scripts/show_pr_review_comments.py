@@ -39,10 +39,11 @@ if not token:
     except FileNotFoundError:
         print("Error: gh CLI not found and no GH_TOKEN/GITHUB_TOKEN set.")
         sys.exit(1)
+if not token:
+    print("Error: no authentication token available — set GH_TOKEN/GITHUB_TOKEN or run 'gh auth login'.")
+    sys.exit(1)
 
-headers = {"Accept": "application/vnd.github+json"}
-if token:
-    headers["Authorization"] = f"token {token}"
+headers = {"Accept": "application/vnd.github+json", "Authorization": f"token {token}"}
 
 # GraphQL query — returns all threads with pagination
 QUERY = """
@@ -54,7 +55,6 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
         nodes {
           isResolved
           isOutdated
-          isCollapsed
           comments(first: 1) {
             nodes {
               path

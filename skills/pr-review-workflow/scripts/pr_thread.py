@@ -77,13 +77,15 @@ if not token:
     except FileNotFoundError:
         print("Error: gh CLI not found and no GH_TOKEN/GITHUB_TOKEN set.")
         sys.exit(1)
+if not token:
+    print("Error: no authentication token available — set GH_TOKEN/GITHUB_TOKEN or run 'gh auth login'.")
+    sys.exit(1)
 
 headers = {
     "Accept": "application/vnd.github+json",
     "Content-Type": "application/json",
+    "Authorization": f"token {token}",
 }
-if token:
-    headers["Authorization"] = f"token {token}"
 
 def graphql(query, variables):
     payload = json.dumps({"query": query, "variables": variables}).encode()
@@ -107,7 +109,6 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
         nodes {
           id
           isResolved
-          isOutdated
           originalComment: comments(first: 1) {
             nodes { path line body author { login } url }
           }

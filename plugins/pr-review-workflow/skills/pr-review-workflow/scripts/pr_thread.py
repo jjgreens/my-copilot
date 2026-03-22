@@ -305,7 +305,7 @@ elif action == "list-deferred":
             path = first.get("path", "?")
             line = first.get("line") or ""
             issue_text = (first.get("body") or "")[:120]
-            context = deferred_bodies[-1][len("[DEFERRED]"):].strip()
+            context = deferred[len("[DEFERRED]"):].strip()
             status = "resolved" if t["isResolved"] else "OPEN"
             print(f"[{num}] {path}:{line} ({status})")
             print(f"  Issue: {issue_text}")

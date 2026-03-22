@@ -87,10 +87,13 @@ while True:
         headers={**headers, "Content-Type": "application/json"}
     )
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req, timeout=30) as r:
             data = json.load(r)
     except urllib.error.HTTPError as e:
         print(f"HTTP {e.code}: {e.read().decode()}")
+        sys.exit(1)
+    except urllib.error.URLError as e:
+        print(f"Network error: {e.reason}")
         sys.exit(1)
 
     if data.get("errors"):

@@ -18,8 +18,11 @@ while true; do
     exit 1
   fi
 
-  RUNS=$(gh api "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}" \
-    --jq '.workflow_runs | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null)
+  if ! RUNS=$(gh api "repos/${REPO}/actions/runs?head_sha=${HEAD_SHA}" \
+    --jq '.workflow_runs | .[] | "\(.name): \(.status) / \(.conclusion // "running")"' 2>/dev/null); then
+    echo "Error: could not retrieve workflow runs — check repo permissions and gh auth status."
+    exit 1
+  fi
   echo "$RUNS"
 
   # Filter: copilot bot (login starts with "copilot-pull-request-reviewer"),

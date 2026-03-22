@@ -91,10 +91,13 @@ def graphql(query, variables):
     payload = json.dumps({"query": query, "variables": variables}).encode()
     req = urllib.request.Request("https://api.github.com/graphql", data=payload, headers=headers)
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req, timeout=30) as r:
             return json.load(r)
     except urllib.error.HTTPError as e:
         print(f"HTTP {e.code}: {e.read().decode()}")
+        sys.exit(1)
+    except urllib.error.URLError as e:
+        print(f"Network error: {e.reason}")
         sys.exit(1)
 
 # Fetch all threads.

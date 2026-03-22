@@ -91,12 +91,25 @@ def main():
         output = run.get("output", {}) if isinstance(run, dict) else {}
         summary = (output.get("summary") or "").strip()
         ann_count = output.get("annotations_count", 0)
+        actionable = conclusion not in ("success", "neutral", "skipped")
 
-        # Show output summary when the run has findings or a non-success conclusion
-        if summary and (conclusion not in ("success", "neutral") or ann_count > 0):
+        # Always report non-success runs; show summary when present
+        if actionable:
+            total_summaries += 1
+            print(f"\n[{run_name}] ({conclusion}) on {short_sha}:")
+            if summary:
+                # Truncate very long summaries to keep output readable
+                if len(summary) > 2000:
+                    print(summary[:2000])
+                    print(f"  ... ({len(summary) - 2000} chars truncated — see check run for full output)")
+                else:
+                    print(summary)
+            else:
+                print("  (no output summary)")
+        elif summary and ann_count > 0:
+            # Success/neutral run with annotations — still worth showing the summary
             total_summaries += 1
             print(f"\n[{run_name}] ({conclusion}) — output summary on {short_sha}:")
-            # Truncate very long summaries to keep output readable
             if len(summary) > 2000:
                 print(summary[:2000])
                 print(f"  ... ({len(summary) - 2000} chars truncated — see check run for full output)")

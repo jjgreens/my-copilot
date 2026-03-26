@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed — fix: set exec bit on all Python scripts in pr-review-workflow
+
+- `skills/pr-review-workflow/scripts/show_ci_annotations.py` and `show_pr_comments.py`: mode 644 → 755
+  — both have `#!/usr/bin/env python3` shebangs and the SKILL.md calls them directly (without `python3` prefix)
+- Synced same fix to `plugins/pr-review-workflow/scripts/`
+
 ### Added — chore: admin-merge guidance in pr-review-workflow skill
 
 - `skills/pr-review-workflow/SKILL.md`: added **Merging** section documenting normal squash merge and the admin bypass path. Admin bypass guidance includes: check `permissions.admin` for the authenticated user, check `enforce_admins.enabled` on the branch, and **require explicit user confirmation** before running `gh pr merge --admin`. Never bypasses without confirmation.

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added — chore: admin-merge guidance in pr-review-workflow skill
+
+- `skills/pr-review-workflow/SKILL.md`: added **Merging** section documenting normal squash merge and the admin bypass path. Admin bypass guidance includes: check `permissions.admin` for the authenticated user, check `enforce_admins.enabled` on the branch, and **require explicit user confirmation** before running `gh pr merge --admin`. Never bypasses without confirmation.
+
 ---
 
 ## [1.0.3] - 2026-03-22

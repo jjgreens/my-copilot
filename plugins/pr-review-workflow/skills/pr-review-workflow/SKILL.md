@@ -145,3 +145,57 @@ For each deferred item: either fix and mark `[FIXED]`, or create a follow-up iss
 
 If any changes are made during the pre-merge checklist (e.g. CHANGELOG update, deferred fixes),
 commit and push them, then request a new Copilot review and get a clean result before merging.
+
+## Merging
+
+### Normal merge
+
+```bash
+gh pr merge <pr> --squash \
+  --subject "<title> (#<pr>)" \
+  --body "<brief summary of key changes>"
+```
+
+### When merge is blocked by required-review policy
+
+If all CI checks pass but merge is still blocked, diagnose the state:
+
+```bash
+gh pr view <pr> --json mergeStateStatus,reviewDecision
+```
+
+If `mergeStateStatus` is `BLOCKED` and `reviewDecision` is `REVIEW_REQUIRED`, check whether
+the current user is an admin **and** whether the repo permits admin bypass:
+
+```bash
+# Check admin permission for the current authenticated user
+gh api repos/<owner>/<repo> --jq '.permissions.admin'
+
+# Check whether admins are exempt from branch protection (true = bypass allowed)
+gh api repos/<owner>/<repo>/branches/main/protection \
+  --jq '.enforce_admins.enabled | not'
+```
+
+Admin force-merge is only available if **both** conditions hold:
+- `permissions.admin` is `true` (current user is a repo admin)
+- `enforce_admins.enabled` is `false` (admin bypass is permitted on this branch)
+
+If both conditions hold, **ask the user for explicit confirmation before proceeding** —
+bypassing branch protection is a privileged, irreversible action:
+
+> All CI checks pass and the review cycle is complete. The PR is blocked only by the
+> required-review policy. You have admin access and the branch allows admin bypass.
+> Merge now using `gh pr merge --admin`?
+
+Only if the user confirms:
+
+```bash
+gh pr merge <pr> --squash --admin \
+  --subject "<title> (#<pr>)" \
+  --body "<brief summary of key changes>"
+```
+
+If either condition does not hold, do not use `--admin` — ask the user to approve or
+adjust branch protection settings instead.
+
+**Never use `--admin` without explicit user confirmation, even when all checks pass.**

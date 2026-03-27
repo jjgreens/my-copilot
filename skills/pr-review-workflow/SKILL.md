@@ -109,11 +109,19 @@ GitHub PRs have four distinct issue surfaces, each requiring a separate check:
 .github/skills/pr-review-workflow/scripts/show_ci_annotations.py <owner/repo> <pr>
 
 # 3. General PR comments (bot and human, Conversation tab)
-.github/skills/pr-review-workflow/scripts/show_pr_comments.py <owner/repo> <pr>
+# Output can be long — pipe to a file and read it in full to avoid truncation
+.github/skills/pr-review-workflow/scripts/show_pr_comments.py <owner/repo> <pr> | tee /tmp/pr_comments.txt
 ```
 
-Read all output. Write down every actionable item. Only when the complete list is in hand
-should you proceed to Step 5.
+Read **all** output in full — do not proceed if any script output was truncated. If output is
+cut off, re-run piped to a file (`| tee /tmp/...`) and read the complete file.
+
+**"Success with warnings" is not the same as clean.** A ✅ with warnings or a partial-success
+status still requires review. Fix all valid errors, warnings, and lint issues until the CI
+output is actually clean — do not treat a non-zero issue count as acceptable just because
+overall status shows green.
+
+Write down every actionable item. Only when the complete list is in hand should you proceed to Step 5.
 
 If all three return no issues → **done, PR is merge-ready.** Break the loop.
 
@@ -172,11 +180,14 @@ the current user is an admin **and** whether the repo permits admin bypass:
 gh api repos/<owner>/<repo> --jq '.permissions.admin'
 
 # Check whether admins are exempt from branch protection (true = bypass allowed)
-gh api repos/<owner>/<repo>/branches/main/protection \
+# Use the repo's default branch, not a hardcoded 'main'
+default_branch=$(gh api repos/<owner>/<repo> --jq '.default_branch')
+gh api repos/<owner>/<repo>/branches/$default_branch/protection \
   --jq '.enforce_admins.enabled | not'
 ```
 
 Admin force-merge is only available if **both** conditions hold:
+
 - `permissions.admin` is `true` (current user is a repo admin)
 - `enforce_admins.enabled` is `false` (admin bypass is permitted on this branch)
 

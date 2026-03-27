@@ -182,7 +182,8 @@ gh api repos/<owner>/<repo> --jq '.permissions.admin'
 # Check whether admins are exempt from branch protection (true = bypass allowed)
 # Use the repo's default branch, not a hardcoded 'main'
 default_branch=$(gh api repos/<owner>/<repo> --jq '.default_branch')
-gh api repos/<owner>/<repo>/branches/$default_branch/protection \
+encoded_branch=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$default_branch")
+gh api repos/<owner>/<repo>/branches/$encoded_branch/protection \
   --jq '.enforce_admins.enabled | not'
 ```
 

@@ -36,9 +36,10 @@ which is the standard installation location.**
 
 ## Workflow
 
-> **⚠️ One commit per round — no exceptions.**
+> **⚠️ One commit per fix, one push per round — no exceptions.**
 > Run ALL three collection scripts in Step 4 before modifying any file.
-> Batch every fix into a single commit, then push before requesting the next review.
+> Commit each fix individually with a descriptive message, then push once after all fixes
+> are committed before requesting the next review.
 
 Repeat this loop until the Copilot review comes back clean with no issues:
 
@@ -125,20 +126,27 @@ Write down every actionable item. Only when the complete list is in hand should 
 
 If all three return no issues → **done, PR is merge-ready.** Break the loop.
 
-### Step 5: FIX — Address Every Issue From the Complete List
+### Step 5: FIX — Address Every Issue From the Complete List, One Commit Per Fix
 
-Fix every item collected in Step 4 in one pass. Do not commit partial fixes — if you
-discover a new issue while implementing a fix, add it to the current batch, do not
-commit and loop back.
+Work through every item collected in Step 4. Commit each fix individually as you go with
+a descriptive message scoped to that change. Do not bundle unrelated fixes into one commit.
+
+If you discover a new issue while implementing a fix, address it as its own separate commit
+in the same round — do not defer it to the next round.
 
 If the repo has a required pre-commit build or generation step (e.g. `npm run build`,
-`npm run generate`), run it now so generated artifacts stay in sync with source changes.
+`npm run generate`), run it after all fixes are committed and commit the generated artifacts
+as a final commit in the round (e.g. `chore: regenerate build artifacts`).
 
-### Step 6: Single Commit and Push
+### Step 6: Push All Fix Commits
 
-One commit per review round (include any generated artifacts). Then repeat from Step 1.
+After all fix commits for the round are in place, push once to remote. Then repeat from Step 1.
 
-> ⚠️ **Order matters**: always push the fix commit *before* requesting the next review.
+```bash
+git push
+```
+
+> ⚠️ **Order matters**: always push *before* requesting the next review.
 > Requesting review before pushing means Copilot reviews the unfixed code.
 
 ## Pre-Merge Checklist

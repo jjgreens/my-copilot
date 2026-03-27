@@ -1,0 +1,16 @@
+# MegaLinter configuration
+# https://megalinter.io/latest/configuration/
+
+VALIDATE_ALL_CODEBASE: false
+APPLY_FIXES: none
+
+ENABLE_LINTERS:
+  - YAML_YAMLLINT
+  - MARKDOWN_MARKDOWNLINT
+  - SPELL_MISSPELL
+
+FILTER_REGEX_EXCLUDE: (plugins/)
+
+REPORTERS:
+  - GITHUB_STATUS_REPORTER
+  - GITHUB_COMMENT_REPORTER

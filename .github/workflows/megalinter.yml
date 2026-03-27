@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    # Restrict to same-repo PRs — self-hosted runners must not execute
+    # code from untrusted forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ["innersource.prod.amr.dind"]
+    # Pre-pull MegaLinter as the job container to eliminate the ~14 min
+    # cold image pull incurred when using the action's own pull step.
+    # The dind runner caches the image at node level; subsequent runs on
+    # the same node start near-instantly.
+    # BKM: intel-innersource/applications.analyzers.power.vrtt.vrts
+    container: cache-registry.caas.intel.com/cache/oxsecurity/megalinter-documentation@sha256:b2ab9fa56c0dfc19c564067574528044d725be9f88af8264d49808d75c35e148
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: MegaLinter
+        run: /bin/bash /entrypoint.sh
+        env:
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

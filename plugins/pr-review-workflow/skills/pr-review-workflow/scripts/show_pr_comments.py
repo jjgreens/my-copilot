@@ -83,9 +83,11 @@ def main():
         label = f"[BOT] @{login}" if user_type == "Bot" else f"@{login}"
         created = c.get("created_at", "")[:10]
         url = c.get("html_url", "")
-        body_preview = (c.get("body") or "").replace("\n", " ").strip()[:400]
+        body = (c.get("body") or "").strip()
         print(f"  [{created}] {label}  {url}")
-        print(f"  {body_preview}")
+        print()
+        for line in body.splitlines():
+            print(f"  {line}")
         print()
 
 

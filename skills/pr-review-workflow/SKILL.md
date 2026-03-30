@@ -62,8 +62,16 @@ On the first pass there are no threads — skip to Step 3.
 **Fixed in code → fix (reply + resolve):**
 
 ```bash
-.github/skills/pr-review-workflow/scripts/pr_thread.py <owner/repo> <pr> fix 26 27 36 "Fixed in <sha>: <description>."
+# One thread fixed by one commit — most common case
+.github/skills/pr-review-workflow/scripts/pr_thread.py <owner/repo> <pr> fix 26 "Fixed in <sha>: <description>."
+
+# Multiple threads fixed by the same commit — batch only when the sha is identical
+.github/skills/pr-review-workflow/scripts/pr_thread.py <owner/repo> <pr> fix 27 36 "Fixed in <sha>: <description>."
 ```
+
+> Only batch multiple thread IDs in a single `fix` command when they were all addressed
+> by the **same commit**. If different threads were fixed in different commits, resolve
+> them in separate commands so each reply references the correct sha.
 
 **Must revisit before merge → defer (reply [DEFERRED] + resolve):**
 
